@@ -14,7 +14,7 @@ A simple Laravel API that classifies numbers based on their mathematical propert
 
 ---
 
-🔗 **GitHub Repository:** [NumberClassificationAPI](https://github.com/yourusername/NumberClassificationAPI)
+🔗 **GitHub Repository:** [NumberClassificationAPI]((https://github.com/Boluwatife01-bea/hng_task1))
 
 ---
 
