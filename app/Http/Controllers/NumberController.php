@@ -7,32 +7,39 @@ use Illuminate\Support\Facades\Http;
 
 class NumberController extends Controller
 {
-     public function classify($number)
-{
-    if (!is_numeric($number) || strpos($number, '.') !== false) {
-        return response()->json(['number' => "alphabet", 'error' => true], 400);
-    }
+    public function classify(Request $request)
+    {
+        $number = $request->query('number');
 
-    $number = abs((int) $number); // Convert negative to positive
+        // Validate input: Ensure it's a valid integer
+        if (!is_numeric($number) || strpos($number, '.') !== false) {
+            return response()->json(['number' => "alphabet", 'error' => true], 400);
+        }
 
-    $number = (int) $number; // Ensure it's an integer
-    $isPrime = $this->isPrime($number);
-    $isPerfect = $this->isPerfect($number);
-    $isArmstrong = $this->isArmstrong($number);
-    $digitSum = $this->digitSum($number);
-    $parity = $number % 2 === 0 ? 'even' : 'odd';
+        $originalNumber = (int) $number; // Keep original number
+        $number = abs($originalNumber); // Convert negative to positive
 
-    $properties = $isArmstrong ? ['armstrong', $parity] : [$parity];
-    $funFact = $this->fetchFunFact($number);
+        $isPrime = $this->isPrime($number);
+        $isPerfect = $this->isPerfect($number);
+        $isArmstrong = $this->isArmstrong($number);
+        $digitSum = $this->digitSum($number);
+        $parity = $number % 2 === 0 ? 'even' : 'odd';
 
-    return response()->json([
-        'number' => $number,
-        'is_prime' => $isPrime,
-        'is_perfect' => $isPerfect,
-        'properties' => $properties,
-        'digit_sum' => $digitSum,
-        'fun_fact' => $funFact,
-    ]);
+        // Determine properties
+        $properties = $isArmstrong ? ['armstrong', $parity] : [$parity];
+
+        // Fetch fun fact from Numbers API
+        $funFact = $this->fetchFunFact($number);
+
+        // Return JSON response in required format
+        return response()->json([
+            'number' => $originalNumber, // Show original input
+            'is_prime' => $isPrime,
+            'is_perfect' => $isPerfect,
+            'properties' => $properties,
+            'digit_sum' => $digitSum,
+            'fun_fact' => $funFact,
+        ]);
     }
 
     private function isPrime($num)
@@ -74,19 +81,18 @@ class NumberController extends Controller
     }
 
     private function fetchFunFact($num)
-{
-    $response = Http::get("http://numbersapi.com/{$num}/math");
-    $funFact = $response->successful() ? $response->body() : "No fact available.";
+    {
+        $response = Http::get("http://numbersapi.com/{$num}/math");
+        $funFact = $response->successful() ? $response->body() : "No fact available.";
 
-    // If the number is Armstrong, override the fun fact
-    if ($this->isArmstrong($num)) {
-        $funFact = "{$num} is an Armstrong number because " . implode(" + ", array_map(
-            fn($digit) => "{$digit}^" . strlen($num),
-            str_split($num)
-        )) . " = {$num}";
+        // Override fun fact if the number is Armstrong
+        if ($this->isArmstrong($num)) {
+            $funFact = "{$num} is an Armstrong number because " . implode(" + ", array_map(
+                fn($digit) => "{$digit}^" . strlen($num),
+                str_split($num)
+            )) . " = {$num}";
+        }
+
+        return $funFact;
     }
-
-    return $funFact;
-}
-
 }
