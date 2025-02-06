@@ -7,40 +7,32 @@ use Illuminate\Support\Facades\Http;
 
 class NumberController extends Controller
 {
-    public function classify(Request $request)
-    {
-        // Validate input
-        $number = $request->query('number');
+     public function classify($number)
+{
+    if (!is_numeric($number) || strpos($number, '.') !== false) {
+        return response()->json(['number' => "alphabet", 'error' => true], 400);
+    }
 
-        if (!is_numeric($number) || strpos($number, '.') !== false) {
-            return response()->json(['number' => "alphabet", 'error' => true], 400);
-        }
+    $number = abs((int) $number); // Convert negative to positive
 
-        $number = abs((int) $number); // Convert negative to positive
+    $number = (int) $number; // Ensure it's an integer
+    $isPrime = $this->isPrime($number);
+    $isPerfect = $this->isPerfect($number);
+    $isArmstrong = $this->isArmstrong($number);
+    $digitSum = $this->digitSum($number);
+    $parity = $number % 2 === 0 ? 'even' : 'odd';
 
-        $isPrime = $this->isPrime($number);
-        $isPerfect = $this->isPerfect($number);
-        $isArmstrong = $this->isArmstrong($number);
-        $digitSum = $this->digitSum($number);
-        $parity = $number % 2 === 0 ? 'even' : 'odd';
+    $properties = $isArmstrong ? ['armstrong', $parity] : [$parity];
+    $funFact = $this->fetchFunFact($number);
 
-        // Determine properties
-        $properties = [];
-        if ($isArmstrong) $properties[] = "armstrong";
-        $properties[] = $parity;
-
-        // Fetch fun fact
-        $funFact = $this->fetchFunFact($number);
-
-        // Return structured JSON response
-        return response()->json([
-            'number' => $number,
-            'is_prime' => $isPrime,
-            'is_perfect' => $isPerfect,
-            'properties' => $properties,
-            'digit_sum' => $digitSum,
-            'fun_fact' => $funFact,
-        ]);
+    return response()->json([
+        'number' => $number,
+        'is_prime' => $isPrime,
+        'is_perfect' => $isPerfect,
+        'properties' => $properties,
+        'digit_sum' => $digitSum,
+        'fun_fact' => $funFact,
+    ]);
     }
 
     private function isPrime($num)
