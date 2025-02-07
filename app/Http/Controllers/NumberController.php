@@ -85,14 +85,6 @@ class NumberController extends Controller
         $response = Http::get("http://numbersapi.com/{$num}/math");
         $funFact = $response->successful() ? $response->body() : "No fact available.";
 
-        // Override fun fact if the number is Armstrong
-        if ($this->isArmstrong($num)) {
-            $funFact = "{$num} is an Armstrong number because " . implode(" + ", array_map(
-                fn($digit) => "{$digit}^" . strlen($num),
-                str_split($num)
-            )) . " = {$num}";
-        }
-
         return $funFact;
     }
 }
